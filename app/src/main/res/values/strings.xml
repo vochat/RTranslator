@@ -157,4 +157,9 @@
     <string name="walkietalkie_mode" >WalkieTalkie</string>
     <string name="walkietalkie_mode_running" >WalkieTalkie mode is running...</string>
 
+    <!-- Strings for Subscription Dialog -->
+    <string name="dialog_title_daily_limit_reached">Daily Limit Reached</string>
+    <string name="dialog_message_daily_limit_reached">You have used your free daily microphone time. Please subscribe for unlimited usage.</string>
+    <string name="subscribe">Subscribe</string>
+
 </resources>

@@ -38,6 +38,7 @@ import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recogn
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.RecognizerListener;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.RecognizerMultiListener;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recorder;
+import nie.translator.rtranslator.tools.MicrophoneUsageManager; // Import MicrophoneUsageManager
 
 
 public class WalkieTalkieService extends VoiceTranslationService {
@@ -380,7 +381,19 @@ public class WalkieTalkieService extends VoiceTranslationService {
     public void initializeVoiceRecorder(){
         if (Tools.hasPermissions(this, REQUIRED_PERMISSIONS)) {
             //voice recorder initialization
-            super.mVoiceRecorder = new Recorder((Global) getApplication(), false, mVoiceCallback, null);
+            Global appGlobal = (Global) getApplication(); // Get Global instance
+            super.mVoiceRecorder = new Recorder(appGlobal, false, mVoiceCallback, null);
+            if (super.mVoiceRecorder != null) {
+                MicrophoneUsageManager usageManager = appGlobal.getMicrophoneUsageManager();
+                if (usageManager != null) {
+                    super.mVoiceRecorder.setRecordingStateListener(new Recorder.RecordingStateListener() {
+                        @Override
+                        public void onRecordingSegment(long durationMillis) {
+                            usageManager.addUsage(durationMillis);
+                        }
+                    });
+                }
+            }
         }
     }
 

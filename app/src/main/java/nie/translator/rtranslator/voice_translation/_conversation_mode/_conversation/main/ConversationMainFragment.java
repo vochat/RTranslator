@@ -66,6 +66,7 @@ public class ConversationMainFragment extends VoiceTranslationFragment {
     private EditText editText;
     private ImageButton micPlaceHolder;
     private Handler mHandler = new Handler();
+    private TextView textViewSubscriptionStatus; // Added TextView for subscription status
     //connection
     protected VoiceTranslationService.VoiceTranslationServiceCommunicator conversationServiceCommunicator;
     protected VoiceTranslationService.VoiceTranslationServiceCallback conversationServiceCallback;
@@ -115,6 +116,7 @@ public class ConversationMainFragment extends VoiceTranslationFragment {
         micPlaceHolder = view.findViewById(R.id.buttonPlaceHolder);
         microphone.initialize(this, view.findViewById(R.id.leftLine), view.findViewById(R.id.centerLine), view.findViewById(R.id.rightLine));
         microphone.setEditText(editText);
+        textViewSubscriptionStatus = view.findViewById(R.id.textViewSubscriptionStatusConversation); // Initialize TextView
         deactivateInputs(DeactivableButton.DEACTIVATED);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -253,13 +255,45 @@ public class ConversationMainFragment extends VoiceTranslationFragment {
                     @Override
                     public void run() {
                         connectToService();
+                        updateSubscriptionStatusDisplay(); // Update status on service connect
                     }
                 }, 300);
             } else {
                 connectToService();
+                updateSubscriptionStatusDisplay(); // Update status on service connect
             }
         } else {
             connectToService();
+            updateSubscriptionStatusDisplay(); // Update status on service connect
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateSubscriptionStatusDisplay(); // Also update onResume
+    }
+
+    private void updateSubscriptionStatusDisplay() {
+        if (textViewSubscriptionStatus != null && getContext() != null) {
+            nie.translator.rtranslator.Global appGlobal = (nie.translator.rtranslator.Global) getContext().getApplicationContext();
+            nie.translator.rtranslator.tools.SubscriptionManager subManager = appGlobal.getSubscriptionManager();
+            if (subManager != null) {
+                String statusText = subManager.getSubscriptionStatusForDisplay() + "\n" + subManager.getRemainingUsageForDisplay();
+                textViewSubscriptionStatus.setText(statusText);
+                // Refresh data in background, which will update StateFlow, then call this method again or observe
+                new Thread(() -> { // Using new Thread for quick off-main-thread work.
+                    try {
+                         // subManager.refreshSubscriptionData(); // This is suspend, needs coroutine
+                         // For Java, if SubscriptionManager offers a Java-friendly refresh with callback:
+                         // subManager.refreshSubscriptionDataJava(updatedData -> updateSubscriptionStatusDisplay());
+                         // Or simply rely on timed cache and forceRefresh parameter in getSubscriptionData
+                         // For now, we'll just display current cache and let timed refresh handle updates.
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            }
         }
     }
 
@@ -527,6 +561,25 @@ public class ConversationMainFragment extends VoiceTranslationFragment {
                         break;
                     }
                 }
+            }
+        }
+
+        @Override
+        public void onFreeTierLimitReached() {
+            super.onFreeTierLimitReached();
+            if (getActivity() != null && isAdded()) {
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.dialog_title_daily_limit_reached); // Add this string resource
+                builder.setMessage(R.string.dialog_message_daily_limit_reached); // Add this string resource
+                builder.setPositiveButton(R.string.subscribe, (dialog, which) -> {
+                    // TODO: Implement navigation to subscription screen/website
+                    Toast.makeText(getContext(), "Subscription option coming soon!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+                builder.setNegativeButton(android.R.string.ok, (dialog, which) -> dialog.dismiss());
+                androidx.appcompat.app.AlertDialog dialog = builder.create();
+                dialog.setCanceledOnTouchOutside(false); // Optional: prevent dismissal on outside touch
+                dialog.show();
             }
         }
     }

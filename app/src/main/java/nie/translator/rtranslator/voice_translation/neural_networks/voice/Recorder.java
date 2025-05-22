@@ -83,6 +83,7 @@ public class Recorder {
      * The timestamp when the current voice is started.
      */
     private long mVoiceStartedMillis;
+    private RecordingStateListener mRecordingStateListener; // Added RecordingStateListener
 
     private final boolean useBluetoothHeadset;
     private AudioDeviceInfo connectedBleHeadset = null;
@@ -187,6 +188,14 @@ public class Recorder {
     }
 
     /**
+     * Sets the listener for recording state changes, specifically for segment durations.
+     * @param listener The listener to set.
+     */
+    public void setRecordingStateListener(RecordingStateListener listener) {
+        this.mRecordingStateListener = listener;
+    }
+
+    /**
      * Dismisses the currently ongoing utterance.
      */
     public void dismiss() {
@@ -197,6 +206,14 @@ public class Recorder {
     }
 
     public void end() {
+        long segmentEndTime = mLastVoiceHeardMillis; // Time when last voice was heard for this segment
+        if (segmentEndTime == Long.MAX_VALUE && mVoiceStartedMillis != 0) { 
+            // If mLastVoiceHeardMillis was reset by dismiss() before end() was called by timer,
+            // try to use current time, but this might be less accurate.
+            // This case should be rare if end() is called by the timer logic properly.
+            segmentEndTime = System.currentTimeMillis(); 
+        }
+
         //convert the relevant portion of the circular mBuffer to a normal array
         int voiceLength = getMBufferRangeSize(startVoiceIndex, tailIndex);
         float[] data = new float[voiceLength];
@@ -210,8 +227,18 @@ public class Recorder {
             }
         }
         mCallback.onVoice(data, voiceLength);
+
+        // Notify RecordingStateListener about the segment duration
+        if (mRecordingStateListener != null && mVoiceStartedMillis != 0 && segmentEndTime > mVoiceStartedMillis) {
+            long durationMillis = segmentEndTime - mVoiceStartedMillis;
+            if (durationMillis > 0) { // Ensure positive duration
+                mRecordingStateListener.onRecordingSegment(durationMillis);
+            }
+        }
+        
         //reset relevant variables
         startVoiceIndex = 0;  //is not necessary
+        mVoiceStartedMillis = 0; // Reset voice started time
         mLastVoiceHeardMillis = Long.MAX_VALUE;
         mCallback.onVoiceEnd();
     }
@@ -240,6 +267,13 @@ public class Recorder {
             return mAudioRecord.getSampleRate();
         }
         return 0;
+    }
+
+    /**
+     * Defines the listener interface for recording segment events.
+     */
+    public interface RecordingStateListener {
+        void onRecordingSegment(long durationMillis);
     }
 
     /**
@@ -343,7 +377,7 @@ public class Recorder {
                     final long now = System.currentTimeMillis();
                     if (isHearingVoice(mBuffer, oldTailIndex, tailIndex)) {
                         if (mLastVoiceHeardMillis == Long.MAX_VALUE) {    // use Long's maximum limit to indicate that we have no voice
-                            mVoiceStartedMillis = now;
+                            mVoiceStartedMillis = now; // Record the start time of the voice segment
                             if(!Thread.currentThread().isInterrupted()) {
                                 mCallback.onVoiceStart();
                             }

@@ -93,6 +93,7 @@ public class WalkieTalkieFragment extends VoiceTranslationFragment {
     private String selectedLanguageCode;
     private AlertDialog dialog;
     private Handler mHandler = new Handler();
+    private TextView textViewSubscriptionStatus; // Added TextView for subscription status
 
     public WalkieTalkieFragment() {
         // Required empty public constructor
@@ -130,6 +131,7 @@ public class WalkieTalkieFragment extends VoiceTranslationFragment {
         rightMicLanguage = view.findViewById(R.id.textButton2);
         settingsButton = view.findViewById(R.id.settingsButton);
         description.setText(R.string.description_walkie_talkie);
+        textViewSubscriptionStatus = view.findViewById(R.id.textViewSubscriptionStatusWalkie); // Initialize TextView
         deactivateInputs(DeactivableButton.DEACTIVATED);
         //container.setVisibility(View.INVISIBLE);  //we make the UI invisible until the restore of the attributes from the service (to avoid instant changes of the UI).
     }
@@ -307,13 +309,41 @@ public class WalkieTalkieFragment extends VoiceTranslationFragment {
                     @Override
                     public void run() {
                         connectToService();
+                        updateSubscriptionStatusDisplay(); // Update status on service connect
                     }
                 }, 300);
             } else {
                 connectToService();
+                updateSubscriptionStatusDisplay(); // Update status on service connect
             }
         } else {
             connectToService();
+            updateSubscriptionStatusDisplay(); // Update status on service connect
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateSubscriptionStatusDisplay(); // Also update onResume
+    }
+
+    private void updateSubscriptionStatusDisplay() {
+        if (textViewSubscriptionStatus != null && getContext() != null) {
+            nie.translator.rtranslator.Global appGlobal = (nie.translator.rtranslator.Global) getContext().getApplicationContext();
+            nie.translator.rtranslator.tools.SubscriptionManager subManager = appGlobal.getSubscriptionManager();
+            if (subManager != null) {
+                String statusText = subManager.getSubscriptionStatusForDisplay() + "\n" + subManager.getRemainingUsageForDisplay();
+                textViewSubscriptionStatus.setText(statusText);
+                 // Optional: Background refresh, similar to ConversationMainFragment
+                new Thread(() -> {
+                    try {
+                        // subManager.refreshSubscriptionData(); // Suspend function
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            }
         }
     }
 
@@ -811,6 +841,25 @@ public class WalkieTalkieFragment extends VoiceTranslationFragment {
                         break;
                     }
                 }
+            }
+        }
+
+        @Override
+        public void onFreeTierLimitReached() {
+            super.onFreeTierLimitReached();
+            if (getActivity() != null && isAdded()) {
+                androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.dialog_title_daily_limit_reached); // Add this string resource
+                builder.setMessage(R.string.dialog_message_daily_limit_reached); // Add this string resource
+                builder.setPositiveButton(R.string.subscribe, (dialog, which) -> {
+                    // TODO: Implement navigation to subscription screen/website
+                    Toast.makeText(getContext(), "Subscription option coming soon!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+                builder.setNegativeButton(android.R.string.ok, (dialog, which) -> dialog.dismiss());
+                androidx.appcompat.app.AlertDialog dialog = builder.create();
+                dialog.setCanceledOnTouchOutside(false); // Optional: prevent dismissal on outside touch
+                dialog.show();
             }
         }
     }

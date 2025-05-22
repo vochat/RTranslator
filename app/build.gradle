@@ -109,6 +109,14 @@ dependencies {
     implementation 'com.google.mlkit:language-id:17.0.5'
     //JWS parser
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '5.1'
+    // Supabase
+    implementation "io.supabase.gotrue:gotrue-kt:2.5.2"
+    implementation "io.supabase.postgrest:postgrest-kt:2.5.2"
+    implementation "io.supabase.realtime:realtime-kt:2.5.2"
+    // Encrypted SharedPreferences
+    implementation "androidx.security:security-crypto:1.1.0-alpha06"
+    // Google Play Billing Library
+    implementation "com.android.billingclient:billing-ktx:6.1.0"
     //Room library (database)
     def room_version = '2.1.0'
     implementation "androidx.room:room-runtime:$room_version"

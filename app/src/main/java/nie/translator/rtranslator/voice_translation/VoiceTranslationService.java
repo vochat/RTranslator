@@ -63,6 +63,7 @@ public abstract class VoiceTranslationService extends GeneralService {
     public static final int ON_VOLUME_LEVEL = 17;
     public static final int ON_MIC_ACTIVATED = 10;
     public static final int ON_MIC_DEACTIVATED = 11;
+    public static final int ON_FREE_TIER_LIMIT_REACHED = 18; // New callback for limit
     public static final int ON_MESSAGE = 2;
     public static final int ON_CONNECTED_BLUETOOTH_HEADSET = 15;
     public static final int ON_DISCONNECTED_BLUETOOTH_HEADSET = 16;
@@ -76,6 +77,7 @@ public abstract class VoiceTranslationService extends GeneralService {
 
     // errors
     public static final int MISSING_MIC_PERMISSION = 400;
+    // public static final int FREE_TIER_LIMIT_REACHED_ERROR_CODE = 401; // Optional: if sending as an error too
 
     // objects
     Notification notification;
@@ -215,15 +217,53 @@ public abstract class VoiceTranslationService extends GeneralService {
     public void startVoiceRecorder() {
         if (!Tools.hasPermissions(this, REQUIRED_PERMISSIONS)) {
             notifyError(new int[]{MISSING_MIC_PERMISSION}, -1);
-        } else if(isMicAutomatic){
-            if(mVoiceRecorder == null){
-                initializeVoiceRecorder();
-            }
-            if (mVoiceRecorder != null && !isMicMute) {
-                mVoiceRecorder.start();
+            return;
+        }
+
+        if (!isMicAutomatic) { // If not automatic, manual controls might bypass this check or have their own.
+            // For now, manual mode implies direct control, so we might start.
+            // However, limits should ideally apply to manual mode too.
+            // This part might need refinement based on desired behavior for manual mode.
+            // For now, let's assume if it's not automatic, it's a direct command that might bypass this check.
+            // OR, enforce for all starts:
+        }
+
+        // Perform subscription check
+        nie.translator.rtranslator.Global appGlobal = (nie.translator.rtranslator.Global) getApplication();
+        nie.translator.rtranslator.tools.SubscriptionManager subManager = appGlobal.getSubscriptionManager();
+
+        if (subManager != null) {
+            subManager.canActivateMicrophoneJava(false, canActivate -> {
+                if (canActivate) {
+                    mainHandler.post(() -> { // Ensure mic start logic runs on main thread or appropriate service thread
+                        if (isMicAutomatic || manualRecognizingFirstLanguage || manualRecognizingSecondLanguage || manualRecognizingAutoLanguage) {
+                            if (mVoiceRecorder == null) {
+                                initializeVoiceRecorder(); // This initializes and sets the listener
+                            }
+                            if (mVoiceRecorder != null && !isMicMute) {
+                                mVoiceRecorder.start();
+                            }
+                        }
+                    });
+                } else {
+                    mainHandler.post(() -> notifyFreeTierLimitReached());
+                }
+            });
+        } else {
+            // Fallback if subscriptionManager is null (should not happen if Global is setup correctly)
+            // Or, treat as "cannot activate" if subscription status is critical.
+            // For now, proceed with old logic if subManager is unexpectedly null.
+            if (isMicAutomatic) {
+                if(mVoiceRecorder == null){
+                    initializeVoiceRecorder();
+                }
+                if (mVoiceRecorder != null && !isMicMute) {
+                    mVoiceRecorder.start();
+                }
             }
         }
     }
+
 
     public void stopVoiceRecorder() {
         if (mVoiceRecorder != null && isMicAutomatic) {
@@ -575,6 +615,14 @@ public abstract class VoiceTranslationService extends GeneralService {
                         }
                         return true;
                     }
+                    case ON_FREE_TIER_LIMIT_REACHED: { // Handle new callback
+                        for (int i = 0; i < clientCallbacks.size(); i++) {
+                            if (clientCallbacks.get(i) instanceof VoiceTranslationServiceCallback) {
+                                ((VoiceTranslationServiceCallback)clientCallbacks.get(i)).onFreeTierLimitReached();
+                            }
+                        }
+                        return true;
+                    }
                     case ON_MESSAGE: {
                         GuiMessage message = data.getParcelable("message");
                         for (int i = 0; i < clientCallbacks.size(); i++) {
@@ -693,6 +741,9 @@ public abstract class VoiceTranslationService extends GeneralService {
         public void onMicDeactivated(){
         }
 
+        public void onFreeTierLimitReached() { // New callback method
+        }
+
         public void onMessage(GuiMessage message) {
         }
 
@@ -712,5 +763,11 @@ public abstract class VoiceTranslationService extends GeneralService {
         public void onError(int[] reasons, long value) {
             notifyError(reasons, value);
         }
+    }
+
+    protected void notifyFreeTierLimitReached() {
+        Bundle bundle = new Bundle();
+        bundle.putInt("callback", ON_FREE_TIER_LIMIT_REACHED);
+        super.notifyToClient(bundle);
     }
 }

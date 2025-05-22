@@ -43,6 +43,7 @@ import nie.translator.rtranslator.voice_translation.neural_networks.translation.
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recognizer;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.RecognizerListener;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recorder;
+import nie.translator.rtranslator.tools.MicrophoneUsageManager; // Import MicrophoneUsageManager
 
 
 public class ConversationService extends VoiceTranslationService {
@@ -270,7 +271,19 @@ public class ConversationService extends VoiceTranslationService {
     public void initializeVoiceRecorder() {
         if (Tools.hasPermissions(this, REQUIRED_PERMISSIONS)) {
             //voice recorder initialization
-            super.mVoiceRecorder = new Recorder((Global) getApplication(), true, mVoiceCallback, new BluetoothHeadsetCallback());
+            Global appGlobal = (Global) getApplication(); // Get Global instance
+            super.mVoiceRecorder = new Recorder(appGlobal, true, mVoiceCallback, new BluetoothHeadsetCallback());
+            if (super.mVoiceRecorder != null) {
+                MicrophoneUsageManager usageManager = appGlobal.getMicrophoneUsageManager();
+                if (usageManager != null) {
+                    super.mVoiceRecorder.setRecordingStateListener(new Recorder.RecordingStateListener() {
+                        @Override
+                        public void onRecordingSegment(long durationMillis) {
+                            usageManager.addUsage(durationMillis);
+                        }
+                    });
+                }
+            }
         }
     }
 

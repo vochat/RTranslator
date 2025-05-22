@@ -52,6 +52,49 @@ Also, RTranslator works even in the background, with the phone on standby or whe
 <a href="https://www.producthunt.com/posts/rtranslator-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-rtranslator&#0045;2" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=487672&theme=light" alt="RTranslator - Open&#0045;source&#0032;and&#0032;offline&#0032;simultaneous&#0032;translator&#0032;for&#0032;Android | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 <br /><br />
 
+<h3>User Accounts</h3>
+
+To enhance your experience and manage features like usage limits and subscriptions, RTranslator now supports user accounts.
+
+- **Create an Account:** You can easily sign up using your email and password. Support for Google and GitHub sign-in is also available for quick access.
+- **Benefits:**
+    - Track and manage your subscription status.
+    - Sync your microphone usage data.
+    - (Future) Access personalized settings and features across devices.
+- **Password Management:** If you forget your password, a "Forgot Password" option is available on the login screen to securely reset it via email.
+<br /><br />
+
+<h3>Subscription Model</h3>
+
+RTranslator offers two tiers to suit your needs:
+
+- **Free Tier:**
+    - Enjoy core translation features with on-device processing.
+    - Includes a daily microphone usage limit of up to 60 minutes for real-time voice input. This limit resets daily.
+    - Text translation mode remains unlimited.
+
+- **Premium Tier (Subscription-based):**
+    - **Unlimited microphone usage:** Speak and translate without daily time restrictions.
+    - Access to all current and future premium features.
+    - **How to Subscribe:** You can subscribe to a monthly or yearly plan directly within the app through the "Subscription" page (if available, or via prompts when limits are reached). Purchases are securely handled by Google Play Billing.
+    - **Manage Your Subscription:** Your subscription can be managed or cancelled at any time through your Google Play Store account settings.
+
+This model helps support the ongoing development and maintenance of RTranslator while keeping core features accessible.
+<br /><br />
+
+<h3>Offline Functionality with User Accounts</h3>
+
+RTranslator continues to prioritize offline functionality for its core translation capabilities:
+
+- **AI Models On-Device:** Speech recognition (Whisper) and translation (NLLB) models run entirely on your device, ensuring privacy and offline availability once downloaded.
+- **Account Authentication:**
+    - Initial account sign-up and login require an internet connection.
+    - Once logged in, your session is cached locally, allowing you to use the app offline for a period.
+- **Subscription & Usage Sync:**
+    - An internet connection is needed to make a new subscription purchase or to restore an existing one on a new device.
+    *   Your subscription status and current microphone usage are cached locally. The app will attempt to sync this data periodically when online to ensure daily limits are correctly enforced and your subscription status is up-to-date. If you are offline for an extended period, the displayed remaining usage might not reflect the most recent synced data until you go online.
+<br /><br />
+
 <h3>Download</h3>
 
 To install the app, download the latest version of the app apk file from https://github.com/niedev/RTranslator/releases/ and install it (ignore the other files, those will be downloaded automatically by the app on the first start).
@@ -111,7 +154,21 @@ To change the system TTS (and therefore the TTS used by RTranslator), download t
 
 <h3>Privacy</h3>
 
-Privacy is a fundamental right. That's why RTranslator does not collect any personal data (I don't even have a server). For more information, read the <a href="https://github.com/niedev/RTranslator/blob/v2.00/privacy/Privacy_Policy_en.md" target="_blank" rel="noopener noreferrer">privacy policy</a> (for now is the same privacy policy of RTranslator 1.0, but I will update it in the future).
+Privacy remains a fundamental aspect of RTranslator. With the introduction of user accounts and subscriptions, here's how your data is handled:
+
+- **Core Translation Data:** Speech input and translated text are processed on your device by local AI models (Whisper and NLLB) and are not sent to any external servers for translation purposes.
+- **User Account Information:**
+    - To create and manage your account, we store your email address and a secure Supabase User ID. OAuth sign-ins (Google, GitHub) are handled through their respective platforms, and RTranslator receives your email and a unique identifier.
+    - Passwords are managed securely by Supabase authentication services.
+- **Microphone Usage Data:**
+    - For users on the Free Tier, the duration of microphone usage is tracked and associated with your account to manage daily limits. This usage data (total duration) is periodically synced with our Supabase backend.
+- **Subscription Status:**
+    - Your subscription status (e.g., active, expired, tier) and expiry date are associated with your Supabase User ID and stored on our backend to manage access to premium features.
+    - Purchase tokens from Google Play Billing are sent to our backend (Supabase Edge Function) for one-time validation with Google's servers to confirm the subscription. We store a record of this validation.
+- **Payment Information:** All payment processing for subscriptions is handled directly and securely by Google Play Billing. RTranslator does not see, collect, or store your credit card details or other sensitive payment information.
+- **Data Storage:** Account information, usage metadata, and subscription status are stored using Supabase, a trusted third-party backend service.
+
+**Important Note:** The existing <a href="https://github.com/niedev/RTranslator/blob/v2.00/privacy/Privacy_Policy_en.md" target="_blank" rel="noopener noreferrer">privacy policy document</a> needs to be updated to accurately reflect these new data handling practices for user accounts, usage tracking, and subscriptions. **Users are encouraged to review the updated policy once available.** We are committed to transparency and protecting your data.
 <br /><br />
 
 <h3>Libraries and models</h3>

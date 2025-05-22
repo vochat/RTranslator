@@ -51,6 +51,8 @@ public class LoadingActivity extends GeneralActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // SupabaseManager related initialization might be here if needed before UI
+        // For now, SupabaseManager is initialized in Global.onCreate()
         String previousActivity = getIntent().getStringExtra("activity");
         SplashScreen splashScreen = null;
         if(previousActivity == null || !previousActivity.equals("download")) {  //if this activity is called by the DownloadFragment we don't use the splash screen
@@ -79,17 +81,53 @@ public class LoadingActivity extends GeneralActivity {
         super.onResume();
         isVisible = true;
         global = (Global) getApplication();
-        if (global.isFirstStart()) {
-            Intent intent = new Intent(this, AccessActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            finish();
-        } else if (global.getTranslator() != null && global.getSpeechRecognizer() != null) {
-            startVoiceTranslationActivity();
+        nie.translator.rtranslator.tools.SupabaseManager supabaseManager = global.getSupabaseManager();
+
+        if (supabaseManager.getCurrentSession() != null && supabaseManager.getCurrentUser() != null) {
+            // User is authenticated
+            // Notify Global about user login (session already exists)
+            global.onUserLogin(); 
+            
+            // Attempt to sync microphone usage
+            nie.translator.rtranslator.tools.MicrophoneUsageManager microphoneUsageManager = global.getMicrophoneUsageManager();
+            if (microphoneUsageManager != null) {
+                microphoneUsageManager.syncWithSupabase();
+            }
+
+            // Proceed with normal app flow
+            if (global.isFirstStart()) {
+                Intent intent = new Intent(this, AccessActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                finish();
+            } else if (global.getTranslator() != null && global.getSpeechRecognizer() != null) {
+                startVoiceTranslationActivity();
+            } else {
+                initializeApp(false);
+                //onFailure(new int[]{ErrorCodes.GOOGLE_TTS_ERROR}, 0);
+            }
         } else {
-            initializeApp(false);
-            //onFailure(new int[]{ErrorCodes.GOOGLE_TTS_ERROR}, 0);
+            // User is not authenticated. The old LoginActivity.kt navigation is removed.
+            // The app will now proceed with its original flow (e.g., to AccessActivity if firstStart is true)
+            // or attempt to initialize models directly. This behavior might need to be
+            // adjusted once the new primary authentication mechanism (e.g., OAuth only) is fully integrated.
+            // For now, we ensure it doesn't crash by calling a deleted activity.
+            android.util.Log.w("LoadingActivity", "User not authenticated. Old LoginActivity navigation removed. Proceeding with default unauthenticated flow.");
+            // The original logic from before LoginActivity was introduced would typically follow,
+            // which is to check global.isFirstStart() etc. without an auth check.
+            // Replicating that original flow if no user session:
+            if (global.isFirstStart()) {
+                Intent intent = new Intent(this, AccessActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                finish();
+            } else if (global.getTranslator() != null && global.getSpeechRecognizer() != null) {
+                startVoiceTranslationActivity();
+            } else {
+                initializeApp(false);
+            }
         }
     }
 

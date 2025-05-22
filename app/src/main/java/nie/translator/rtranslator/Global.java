@@ -48,9 +48,15 @@ import nie.translator.rtranslator.voice_translation.neural_networks.NeuralNetwor
 import nie.translator.rtranslator.voice_translation.neural_networks.translation.Translator;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recognizer;
 import nie.translator.rtranslator.voice_translation.neural_networks.voice.Recorder;
+import nie.translator.rtranslator.tools.SupabaseManager;
+import nie.translator.rtranslator.tools.MicrophoneUsageManager;
+import nie.translator.rtranslator.tools.SubscriptionManager; // Import SubscriptionManager
 
 
 public class Global extends Application implements DefaultLifecycleObserver {
+    public SupabaseManager supabaseManager;
+    public MicrophoneUsageManager microphoneUsageManager;
+    public SubscriptionManager subscriptionManager; // Public instance of SubscriptionManager
     private ArrayList<CustomLocale> languages = new ArrayList<>();
     private ArrayList<CustomLocale> translatorLanguages = new ArrayList<>();
     private ArrayList<CustomLocale> ttsLanguages = new ArrayList<>();
@@ -80,10 +86,44 @@ public class Global extends Application implements DefaultLifecycleObserver {
     public void onCreate() {
         super.onCreate();
         mainHandler = new Handler(Looper.getMainLooper());
+        supabaseManager = new SupabaseManager(getApplicationContext());
+        microphoneUsageManager = new MicrophoneUsageManager(getApplicationContext(), supabaseManager);
+        subscriptionManager = new SubscriptionManager(supabaseManager); // Initialize SubscriptionManager
         recentPeersDataManager = new RecentPeersDataManager(this);
         //initializeBluetoothCommunicator();
         getMicSensitivity();
         createNotificationChannel();
+    }
+
+    public SupabaseManager getSupabaseManager() {
+        return supabaseManager;
+    }
+
+    public MicrophoneUsageManager getMicrophoneUsageManager() {
+        return microphoneUsageManager;
+    }
+
+    public SubscriptionManager getSubscriptionManager() { // Getter for SubscriptionManager
+        return subscriptionManager;
+    }
+
+    // Call this method after a successful user login
+    public void onUserLogin() {
+        if (subscriptionManager != null) {
+            subscriptionManager.initializeUserSession();
+        }
+        // Optionally, trigger an immediate sync of microphone usage if relevant
+        if (microphoneUsageManager != null) {
+            microphoneUsageManager.syncWithSupabase();
+        }
+    }
+
+    // Call this method on user logout
+    public void onUserLogout() {
+        if (subscriptionManager != null) {
+            subscriptionManager.clearUserSession();
+        }
+        // Reset any other user-specific data if needed
     }
 
     public void initializeTranslator(NeuralNetworkApi.InitListener initListener){
