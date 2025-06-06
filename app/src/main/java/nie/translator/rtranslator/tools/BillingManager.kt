@@ -158,7 +158,7 @@ class BillingManager(
         val billingFlowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(productDetailsParamsList)
             .build()
-        
+
         _purchaseFlowStatus.value = PurchaseValidationStatus.UNKNOWN // Reset before new flow
 
         val billingResult = billingClient.launchBillingFlow(activity, billingFlowParams)
@@ -196,7 +196,7 @@ class BillingManager(
         return try {
             // Placeholder: Replace with actual SupabaseManager call to the Edge Function
             // val validationResult = supabaseManager.invokeValidateGooglePlayPurchaseFunction(purchaseToken, productId)
-            // return validationResult.isSuccess 
+            // return validationResult.isSuccess
             // For now, assume validation passes if RPC doesn't fail, or returns true
             // This RPC needs to be created in SupabaseManager
             supabaseManager.invokeValidateGooglePlayPurchaseRpc(purchaseToken, productId)

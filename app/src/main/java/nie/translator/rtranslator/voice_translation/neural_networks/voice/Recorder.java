@@ -207,11 +207,11 @@ public class Recorder {
 
     public void end() {
         long segmentEndTime = mLastVoiceHeardMillis; // Time when last voice was heard for this segment
-        if (segmentEndTime == Long.MAX_VALUE && mVoiceStartedMillis != 0) { 
+        if (segmentEndTime == Long.MAX_VALUE && mVoiceStartedMillis != 0) {
             // If mLastVoiceHeardMillis was reset by dismiss() before end() was called by timer,
             // try to use current time, but this might be less accurate.
             // This case should be rare if end() is called by the timer logic properly.
-            segmentEndTime = System.currentTimeMillis(); 
+            segmentEndTime = System.currentTimeMillis();
         }
 
         //convert the relevant portion of the circular mBuffer to a normal array
@@ -235,7 +235,7 @@ public class Recorder {
                 mRecordingStateListener.onRecordingSegment(durationMillis);
             }
         }
-        
+
         //reset relevant variables
         startVoiceIndex = 0;  //is not necessary
         mVoiceStartedMillis = 0; // Reset voice started time

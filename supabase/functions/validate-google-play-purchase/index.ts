@@ -29,8 +29,8 @@ async function updateSubscriptionStatus(
       is_subscribed: true,
       subscription_expiry_date: expiryDate,
       // Storing these can be useful for audit or re-validation
-      google_product_id: productId, 
-      google_purchase_token: purchaseToken, 
+      google_product_id: productId,
+      google_purchase_token: purchaseToken,
       last_validated_time: new Date().toISOString(),
     })
     .eq("user_id", userId);
@@ -81,7 +81,7 @@ serve(async (req: Request) => {
     console.error("Auth error:", userError);
     return new Response("Authentication failed", { status: 401 });
   }
-  
+
   const userId = user.id;
   console.log(`Processing purchase for user: ${userId}, product: ${product_id}, token: ${purchase_token.substring(0,20)}...`);
 
@@ -129,7 +129,7 @@ serve(async (req: Request) => {
         return new Response("Subscription is not active or payment is pending.", { status: 200, body: JSON.stringify({ success: false, message: "Subscription not active."}) });
       }
     }
-    
+
     // Use Supabase Admin client to update user_profiles table (bypass RLS)
     // Ensure SUPABASE_SERVICE_ROLE_KEY is set in env for admin client.
      const supabaseAdminClient = createClient(

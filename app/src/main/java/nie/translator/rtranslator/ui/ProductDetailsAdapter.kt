@@ -41,8 +41,8 @@ class ProductDetailsAdapter(
         fun bind(productDetails: ProductDetails) {
             titleTextView.text = productDetails.title
             descriptionTextView.text = productDetails.description
-            
-            // Subscriptions usually have one base plan. 
+
+            // Subscriptions usually have one base plan.
             // Pricing display might need to be more sophisticated for multiple offers/plans.
             val offerDetails = productDetails.subscriptionOfferDetails?.firstOrNull()
             priceTextView.text = offerDetails?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice ?: "N/A"

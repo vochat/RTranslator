@@ -109,10 +109,13 @@ dependencies {
     implementation 'com.google.mlkit:language-id:17.0.5'
     //JWS parser
     implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '5.1'
-    // Supabase
-    implementation "io.supabase.gotrue:gotrue-kt:2.5.2"
-    implementation "io.supabase.postgrest:postgrest-kt:2.5.2"
-    implementation "io.supabase.realtime:realtime-kt:2.5.2"
+    // Supabase Kotlin (Official - Jan Tennert)
+    implementation(platform("io.github.jan-tennert.supabase:bom:2.2.0")) // Use BOM for consistent versions
+    implementation("io.github.jan-tennert.supabase:gotrue-kt")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    // implementation("io.github.jan-tennert.supabase:storage-kt") // Uncomment if storage is needed
+    // implementation("io.github.jan-tennert.supabase:functions-kt") // Uncomment if functions are called directly
     // Encrypted SharedPreferences
     implementation "androidx.security:security-crypto:1.1.0-alpha06"
     // Google Play Billing Library

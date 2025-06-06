@@ -83,7 +83,7 @@ class SubscriptionManager(private val supabaseManager: SupabaseManager) {
             }
         }
     }
-    
+
     suspend fun refreshSubscriptionData(): SubscriptionData? {
         return refreshMutex.withLock {
             // Double-check if another coroutine refreshed while waiting for the mutex
@@ -107,7 +107,7 @@ class SubscriptionManager(private val supabaseManager: SupabaseManager) {
             } else {
                 // Failed to fetch, could clear cache or keep stale, or return specific error
                 // For now, nullify if fetch fails hard, or keep stale if that's preferred.
-                // _subscriptionData.value = null 
+                // _subscriptionData.value = null
                 // lastFetchedTimeMillis = 0L // Force refresh next time
                 _subscriptionData.value // Return current (possibly stale or null) data
             }

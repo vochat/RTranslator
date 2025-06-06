@@ -44,7 +44,7 @@ class SubscriptionActivity : AppCompatActivity() {
         textViewCurrentStatus = findViewById(R.id.textViewCurrentSubscriptionStatus)
         progressBar = findViewById(R.id.progressBarSubscription)
         recyclerViewProducts = findViewById(R.id.recyclerViewSubscriptionProducts)
-        
+
         setupRecyclerView()
         observeBillingState()
         observeSubscriptionState()
@@ -87,7 +87,7 @@ class SubscriptionActivity : AppCompatActivity() {
                     PurchaseValidationStatus.SUCCESS -> {
                         Toast.makeText(this@SubscriptionActivity, "Purchase successful!", Toast.LENGTH_LONG).show()
                         // Refresh subscription status from our backend
-                        subscriptionManager.refreshSubscriptionData() 
+                        subscriptionManager.refreshSubscriptionData()
                     }
                     PurchaseValidationStatus.FAILED -> {
                         Toast.makeText(this@SubscriptionActivity, "Purchase failed or cancelled.", Toast.LENGTH_SHORT).show()

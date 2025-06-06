@@ -86,8 +86,8 @@ public class LoadingActivity extends GeneralActivity {
         if (supabaseManager.getCurrentSession() != null && supabaseManager.getCurrentUser() != null) {
             // User is authenticated
             // Notify Global about user login (session already exists)
-            global.onUserLogin(); 
-            
+            global.onUserLogin();
+
             // Attempt to sync microphone usage
             nie.translator.rtranslator.tools.MicrophoneUsageManager microphoneUsageManager = global.getMicrophoneUsageManager();
             if (microphoneUsageManager != null) {

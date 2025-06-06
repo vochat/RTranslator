@@ -2,11 +2,9 @@
 
 buildscript {
     repositories {
-        google()
-        jcenter()
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://maven.google.com' }
-        
+        google() // For Android Gradle Plugin
+        mavenCentral() // For other buildscript dependencies if any, and good practice
+        maven { url 'https://jitpack.io' } // Kept if specific plugins need it
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.2'
@@ -15,15 +13,7 @@ buildscript {
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        maven { url 'https://jitpack.io' }
-        maven { url 'https://maven.google.com' }
-        
-    }
-}
+// allprojects repositories block removed as it's now handled by settings.gradle
 
 task clean(type: Delete) {
     delete rootProject.buildDir

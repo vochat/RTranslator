@@ -222,7 +222,7 @@ class SupabaseManager(private val context: Context) {
             // A more robust check would inspect the response status code (e.g., response.status == HttpStatusCode.OK or No Content)
             // This part depends on how postgrest-kt exposes response details from RPC calls.
             // For now, if it doesn't throw, we assume success.
-            true 
+            true
         } catch (e: Exception) {
             e.printStackTrace()
             false
@@ -244,7 +244,7 @@ class SupabaseManager(private val context: Context) {
                     filter("user_id", PostgrestRequestBuilder.Operator.EQ, currentUser.id)
                 }
                 .executeAndGetSingle<UserProfile>() // Expects a single row or throws if not found/multiple
-            
+
             response
         } catch (e: Exception) {
             // This can happen if the profile doesn't exist yet for the user, or network error, etc.
@@ -275,7 +275,7 @@ class SupabaseManager(private val context: Context) {
             // If it returns a specific JSON payload like { "success": true }, you'd need to deserialize it.
             // For now, if RPC doesn't throw, assume it indicated success to the backend.
             // A more robust implementation would check the HTTP status or response body from the Edge Function.
-            true 
+            true
         } catch (e: Exception) {
             e.printStackTrace()
             println("Error calling validate-google-play-purchase Edge Function: ${e.message}")
